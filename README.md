@@ -40,10 +40,7 @@ Result: what used to take 1–2 hours a day now takes **zero** — and you alway
 
 ## 🗺️ Workflow Diagram
 
-<div align="center">
-  <img src="https://github.com/arhamrao18/Invoice-Follow-up/issues/1" alt="Invoice Follow-Up Automation Workflow Diagram" width="750">
-</div>
-
+https://github.com/arhamrao18/Invoice-Follow-up/issues/1
 ---
 
 ## ⚙️ How It Works
