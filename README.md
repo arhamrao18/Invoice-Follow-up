@@ -43,6 +43,12 @@ Result: what used to take 1–2 hours a day now takes **zero** — and you alway
 ![Workflow Diagram](https://github.com/user-attachments/assets/d7410453-946f-4e82-a96a-d170b9ead1c4)
 
 
+
+## 🗺️ Workflow
+
+![Workflow Diagram](https://github.com/user-attachments/assets/53d802d6-b341-45ec-a669-e0ef3260f4c2)
+
+
 ## ⚙️ How It Works
 
 | Step | Node | What It Does |
