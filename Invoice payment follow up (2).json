@@ -1,0 +1,401 @@
+{
+  "name": "Invoice payment follow up",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -736,
+        -160
+      ],
+      "id": "f5557196-a4e3-48a4-aed6-4dc93cf030d3",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1p9ecJVDauOSRxjsheg9Sfj6YSBUdfFvt3_vy4MlGwjM",
+          "mode": "list",
+          "cachedResultName": "invoice-remider sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1p9ecJVDauOSRxjsheg9Sfj6YSBUdfFvt3_vy4MlGwjM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1109611908,
+          "mode": "list",
+          "cachedResultName": "Invoices",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1p9ecJVDauOSRxjsheg9Sfj6YSBUdfFvt3_vy4MlGwjM/edit#gid=1109611908"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -528,
+        -160
+      ],
+      "id": "71d2bab2-0f7d-469a-b0d1-2aeda69a27fc",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "wqdFlTfuaLFUSCaL",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5bf72588-473b-495c-9b8f-1dbc84a58672",
+              "leftValue": "={{ $json['Due Date'] }}",
+              "rightValue": "={{ $now }}",
+              "operator": {
+                "type": "dateTime",
+                "operation": "beforeOrEquals"
+              }
+            },
+            {
+              "id": "b9dafd85-2354-496c-be7a-d1e5db98dfb1",
+              "leftValue": "={{ $json.Status }}",
+              "rightValue": "Unpaid",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "ddb46d97-a13f-4933-9f7c-1d4050c3305a",
+              "leftValue": "={{ $json['Last Reminder Sent'] }}",
+              "rightValue": "={{ $now }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -352,
+        -160
+      ],
+      "id": "62642a76-d0fa-4861-b1bd-c222e15d7a1a",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a professional accounts receivable assistant working on behalf of a business. Your only task is to write ONE payment reminder email for a specific client whose invoice is overdue, based on the exact data provided in the user message.\n\nTONE DECISION (internal only — never mention this word or category anywhere in the actual email):\nThe Reminder Count tells you how many reminders have already been sent. Use it to internally decide how the email should feel, then write it accordingly. This decision must never appear as a label, header, or word in the subject or body — it only shapes your writing style.\n\n- Reminder Count is 0 or 1 → write in a friendly, low-pressure tone, as if it may just be an oversight. Offer help if there's a question about the invoice. No urgency language.\n\n- Reminder Count is exactly 2 → write in a clear, direct tone about the overdue status. Professional but noticeably more serious. Politely but clearly request payment or a response within a specific short timeframe (e.g. 3-5 business days).\n\n- Reminder Count is 3 or more → write in a formal, serious tone. State clearly this is one of the final reminders before further action may be taken (phrase this generically — do NOT invent specific late fees, legal action, or penalties unless explicitly provided). Still respectful and professional — never rude, aggressive, or threatening.\n\nWRITING RULES:\n- Always address the exact Client Name given.\n- Always mention the exact Invoice Number and Amount Due naturally within the email.\n- Body length: 80-140 words.\n- Structure: greeting, 1-2 body paragraphs, professional closing with sign-off placeholder \"[Your Name]\" and \"[Company Name]\".\n- No emojis, no exclamation marks, no casual slang, no all-caps.\n- Never write words like \"polite\", \"firm\", \"final notice\", \"reminder level\", or any internal category name inside the subject or body — the recipient must never see these labels.\n- Do not fabricate any information (fees, dates, threats, discounts) not provided.\n- Output must be in English, business-professional register.\n\nOUTPUT FORMAT (strict):\nReturn ONLY valid JSON, with exactly these two fields, no more and no less. No markdown, no code fences, no explanation, no text before or after the JSON.\n\n{\n  \"subject\": \"string\",\n  \"body\": \"string\"\n}",
+              "role": "model"
+            },
+            {
+              "content": "=Write the payment reminder email using this data:\n\nClient Name: {{$json[\"Client Name\"]}}\nClient Email: {{$json[\"Email\"]}}\nInvoice Number: {{$json[\"Invoice No\"]}}\nAmount Due: {{$json[\"Amount\"]}}\nDue Date: {{$json[\"Due Date\"]}}\nReminder Count (previous reminders sent): {{$json[\"Reminder Count\"]}}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        -96,
+        -176
+      ],
+      "id": "6a8bd0ec-1f24-4ec0-a54b-ee7f112e9136",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "qWoDS91qSr2crfUs",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{$json[\"Email\"]}}",
+        "subject": "={{ $json[\"subject\"] }}",
+        "emailType": "text",
+        "message": "={{ $json[\"body\"] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        512,
+        -176
+      ],
+      "id": "4330fc78-6943-42a4-88fb-68e086f4b5e8",
+      "name": "Send a message",
+      "webhookId": "0f5d2eda-0573-492a-b24f-14490ce1c109",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "fatAKOZh5Ml0IwF8",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const item = Array.isArray($json) ? $json[0] : $json;\nlet rawText = item?.content?.parts?.[0]?.text;\n\nif (!rawText) {\n  return {\n    json: {\n      ...($('If').item.json),\n      subject: \"Payment reminder\",\n      body: \"Automatic email generation failed. Please review manually.\"\n    }\n  };\n}\n\nrawText = rawText.replace(/```json|```/g, \"\").trim();\n\nlet parsed;\ntry {\n  parsed = JSON.parse(rawText);\n} catch (e) {\n  parsed = {\n    subject: \"Payment reminder\",\n    body: \"There was an issue generating this email automatically. Please review manually.\"\n  };\n}\n\nreturn {\n  json: {\n    ...($('If').item.json),\n    subject: parsed.subject,\n    body: parsed.body\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        256,
+        -176
+      ],
+      "id": "a786ae28-a8f6-45f1-9a2d-739f07392bb7",
+      "name": "Code in JavaScript",
+      "executeOnce": false,
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1p9ecJVDauOSRxjsheg9Sfj6YSBUdfFvt3_vy4MlGwjM",
+          "mode": "list",
+          "cachedResultName": "invoice-remider sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1p9ecJVDauOSRxjsheg9Sfj6YSBUdfFvt3_vy4MlGwjM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1109611908,
+          "mode": "list",
+          "cachedResultName": "Invoices",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1p9ecJVDauOSRxjsheg9Sfj6YSBUdfFvt3_vy4MlGwjM/edit#gid=1109611908"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Invoice No": "={{ $('If').item.json[\"Invoice No\"] }}",
+            "Last Reminder Sent": "={{ $now.toISODate() }}",
+            "Reminder Count": "={{ Number($('If').item.json[\"Reminder Count\"]) + 1 }}"
+          },
+          "matchingColumns": [
+            "Invoice No"
+          ],
+          "schema": [
+            {
+              "id": "Client Name",
+              "displayName": "Client Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Invoice No",
+              "displayName": "Invoice No",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Amount",
+              "displayName": "Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Due Date",
+              "displayName": "Due Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Last Reminder Sent",
+              "displayName": "Last Reminder Sent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Reminder Count",
+              "displayName": "Reminder Count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        368,
+        112
+      ],
+      "id": "30a27a60-1671-4de0-8802-6ca94ab7d313",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "wqdFlTfuaLFUSCaL",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "34bf16ac-827f-4795-bb4d-81f3493a7c85",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "34b1616bb0c3a7894608b8ce63c171ecd5990055ff2d33dc467cfbe4f7f8d537"
+  },
+  "nodeGroups": [],
+  "id": "PvWK0nConx3adKSX",
+  "tags": []
+}
