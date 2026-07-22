@@ -40,7 +40,7 @@ Result: what used to take 1–2 hours a day now takes **zero** — and you alway
 
 ## 🗺️ Workflow Diagram
 
-https://github.com/user-attachments/assets/d7410453-946f-4e82-a96a-d170b9ead1c4
+![Workflow Diagram](https://github.com/user-attachments/assets/d7410453-946f-4e82-a96a-d170b9ead1c4)
 
 
 ## ⚙️ How It Works
